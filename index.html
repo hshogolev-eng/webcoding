@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<title>Claude Code — Курс</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%2334C759'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white'>◈</text></svg>">
+<script type="importmap">{"imports":{"preact":"https://esm.sh/preact@10.22.0","preact/hooks":"https://esm.sh/preact@10.22.0/hooks","htm/preact":"https://esm.sh/htm@3.1.1/preact"}}</script>
+<style>
+/* ── CSS Variables — auto dark mode ── */
+:root{
+  --bg:#f2f2f7;--surface:#fff;--surface2:#f2f2f7;--surface3:rgba(0,0,0,.06);
+  --text1:#1c1c1e;--text2:#636366;--text3:#8e8e93;
+  --border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.07);
+  --hdr:rgba(255,255,255,.9);--btm:rgba(242,242,247,.96);
+  --bubble:#fff;--input:#fff;--code:#1c1c2e;--shadow:rgba(0,0,0,.08);
+  --sidebar:#f2f2f7;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#000;--surface:#1c1c1e;--surface2:#2c2c2e;--surface3:rgba(255,255,255,.08);
+  --text1:#fff;--text2:rgba(235,235,245,.75);--text3:rgba(235,235,245,.5);
+  --border:rgba(255,255,255,.15);--border2:rgba(255,255,255,.06);
+  --hdr:rgba(28,28,30,.92);--btm:rgba(0,0,0,.96);
+  --bubble:#2c2c2e;--input:#3a3a3c;--code:#0d0d14;--shadow:rgba(0,0,0,.3);
+  --sidebar:#1c1c1e;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+body{font-family:-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text1);min-height:100dvh;display:flex;flex-direction:column}
+#root{flex:1;display:flex;flex-direction:column;max-width:430px;margin:0 auto;width:100%;min-height:100dvh;position:relative}
+
+/* Header */
+.hdr{background:var(--hdr);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:10px 12px;padding-top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:10;border-bottom:.5px solid var(--border)}
+.hbtn{width:40px;height:40px;border-radius:11px;background:var(--surface3);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text1);font-size:16px;transition:background .15s}
+.hbtn:hover{background:var(--border)}
+.htxt{flex:1;min-width:0}
+.ht{font-size:14px;font-weight:600;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs{font-size:11px;margin-top:1px;color:var(--text2)}
+.pill{border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;flex-shrink:0}
+.pbar{height:3px;background:var(--surface3);flex-shrink:0}
+.pfill{height:100%;border-radius:0 2px 2px 0;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* Messages */
+.msgs-wrap{flex:1;position:relative;overflow:hidden}
+.msgs{height:100%;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;padding-bottom:112px}
+.es{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:40px 20px;text-align:center;min-height:300px}
+.eico{width:72px;height:72px;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.et{font-size:19px;font-weight:700;color:var(--text1);letter-spacing:-.3px}
+.es2{font-size:14px;color:var(--text2);line-height:1.55}
+.row{display:flex;gap:8px;align-items:flex-start}
+.row.u{flex-direction:row-reverse}
+.ava{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;margin-top:2px}
+.bub-wrap{display:flex;flex-direction:column;gap:6px;max-width:88%;min-width:0}
+.bub{padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.65;word-break:break-word}
+.bub.t{background:var(--bubble);color:var(--text1);border-top-left-radius:4px;box-shadow:0 1px 4px var(--shadow)}
+.bub.u{color:#fff;border-top-right-radius:4px;border-bottom-right-radius:4px}
+.bub p{margin-bottom:.45em}.bub p:last-child{margin-bottom:0}
+.bub strong{font-weight:600}.bub em{font-style:italic}
+.bub h3{font-size:14px;font-weight:700;margin:8px 0 4px;color:var(--text1)}
+.bub ul,.bub ol{padding-left:18px;margin:.3em 0}.bub li{margin:.15em 0}
+
+/* Rich blocks */
+.code-block{background:var(--code);border-radius:14px;overflow:hidden}
+.code-hdr{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(255,255,255,.07)}
+.code-lang{font-size:11px;font-weight:700;color:#8e8e93;text-transform:uppercase;letter-spacing:.05em}
+.copy-btn{background:rgba(255,255,255,.1);border:none;border-radius:6px;color:#aeaeb2;font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;font-family:inherit;transition:background .15s}
+.copy-btn:hover{background:rgba(255,255,255,.18)}.copy-btn.copied{color:#34C759}
+.code-body{padding:12px 14px;overflow-x:auto}
+.code-body pre{font-family:'SF Mono',Menlo,Monaco,monospace;font-size:12.5px;line-height:1.6;color:#e8e8f0;margin:0;white-space:pre-wrap;word-break:break-all}
+
+/* Checklist */
+.chk-block{background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px var(--shadow)}
+.chk-title{font-size:13px;font-weight:700;color:var(--text1);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chk-item{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:.5px solid var(--border2);cursor:pointer;transition:opacity .15s}
+.chk-item:last-child{border-bottom:none}.chk-item.done{opacity:.5}
+.chk-box{width:20px;height:20px;border-radius:50%;border:2px solid var(--text3);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .2s;background:var(--surface)}
+.chk-item.done .chk-box{background:#34C759;border-color:#34C759}
+.chk-txt{font-size:13px;line-height:1.45;color:var(--text1);flex:1}
+.chk-item.done .chk-txt{text-decoration:line-through;color:var(--text3)}
+.chk-prog{margin-top:8px;height:3px;background:var(--surface3);border-radius:2px;overflow:hidden}
+.chk-fill{height:100%;background:linear-gradient(90deg,#34C759,#30D158);border-radius:2px;transition:width .3s}
+
+/* Phase indicator */
+.phase-block{background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px var(--shadow)}
+.phase-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px}
+.phase-steps{display:flex;gap:0px;align-items:center}
+.phase-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+.phase-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.phase-dot.done{background:#34C759;color:#fff}
+.phase-dot.active{color:#fff}
+.phase-dot.pending{background:var(--surface3);color:var(--text3)}
+.phase-lbl{font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase;text-align:center;letter-spacing:.04em}
+.phase-lbl.active{color:var(--text1);font-weight:700}
+.phase-conn{flex:1;height:2px;background:var(--surface3);margin-bottom:14px;border-radius:1px;min-width:8px}
+.phase-conn.done{background:#34C759}
+
+/* Schema */
+.schema-block{background:var(--surface);border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px var(--shadow)}
+.schema-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px}
+
+/* Dashboard preview */
+.dash-preview{background:var(--surface);border-radius:14px;padding:14px;box-shadow:0 1px 4px var(--shadow)}
+.dash-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.kpi-card{border-radius:10px;padding:10px 12px}
+.kpi-label{font-size:10px;font-weight:600;color:var(--text3);margin-bottom:3px}
+.kpi-value{font-size:20px;font-weight:700;line-height:1}
+.kpi-trend{font-size:10px;font-weight:600;margin-top:3px}
+.mini-chart{height:48px;display:flex;align-items:flex-end;gap:3px;padding:0 2px}
+.bar{border-radius:3px 3px 0 0;flex:1;min-width:8px}
+
+/* Callouts */
+.callout{border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.55;display:flex;gap:10px}
+.callout-icon{font-size:16px;flex-shrink:0;line-height:1.4}
+.callout-text{flex:1;color:var(--text1)}
+.callout.note{background:rgba(52,199,89,.12);border-left:3px solid #34C759}
+.callout.tip{background:rgba(0,122,255,.12);border-left:3px solid #007AFF}
+.callout.warning{background:rgba(255,149,0,.12);border-left:3px solid #FF9500}
+.callout.stop{background:rgba(255,59,48,.12);border-left:3px solid #FF3B30}
+
+/* Table */
+.md-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px var(--shadow)}
+.md-table th{background:var(--surface2);font-weight:600;color:var(--text1);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.md-table td{padding:8px 12px;color:var(--text1);border-bottom:.5px solid var(--border2)}
+.md-table tr:last-child td{border-bottom:none}
+
+/* Progress file */
+.prog-block{background:var(--surface);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px var(--shadow)}
+.prog-hdr{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.prog-row{display:flex;gap:8px;margin-bottom:4px;font-size:12px;color:var(--text1)}
+.prog-key{font-weight:600;color:var(--text3);min-width:110px;flex-shrink:0}
+
+/* Glossary */
+.gloss-term{border-bottom:1.5px dotted var(--text3);cursor:pointer;position:relative;display:inline}
+.gloss-tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text1);color:var(--surface);font-size:12px;line-height:1.4;padding:8px 12px;border-radius:10px;white-space:normal;width:200px;z-index:100;box-shadow:0 4px 16px var(--shadow);pointer-events:none}
+.gloss-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--text1)}
+
+/* Rating */
+.rating-block{display:flex;gap:6px;align-items:center;padding:10px 14px;background:var(--surface);border-radius:14px;box-shadow:0 1px 4px var(--shadow)}
+.rating-label{font-size:12px;color:var(--text2);flex-shrink:0}
+.rating-btn{flex:1;padding:8px 4px;border-radius:10px;border:.5px solid var(--border);background:var(--surface2);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--text2);transition:all .15s;text-align:center}
+.rating-btn:hover{transform:scale(1.03)}.rating-btn.sel{border-color:transparent;color:#fff}
+
+/* Typing dots */
+.dots{display:flex;gap:4px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--text3);animation:pu 1.4s infinite}
+
+/* Scroll btn */
+.scroll-btn{position:absolute;bottom:116px;right:14px;width:36px;height:36px;border-radius:50%;background:var(--surface);border:.5px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px var(--shadow);transition:opacity .2s,transform .2s;z-index:5;color:var(--text1)}
+.scroll-btn.hidden{opacity:0;pointer-events:none;transform:scale(.8)}
+
+/* Bottom bar */
+.btm{background:var(--btm);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:8px 12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:.5px solid var(--border);flex-shrink:0}
+.sbtn{width:100%;padding:15px;border-radius:16px;color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;font-family:inherit;letter-spacing:-.2px;transition:opacity .15s,transform .12s}
+.sbtn:active{opacity:.88;transform:scale(.97)}
+.irow{display:flex;gap:6px;align-items:flex-end}
+.ta{flex:1;background:var(--input);border:none;border-radius:22px;padding:10px 14px;font-size:15px;font-family:inherit;color:var(--text1);outline:none;box-shadow:0 2px 8px var(--shadow);resize:none;min-height:44px;max-height:96px;line-height:1.45}
+.ta::placeholder{color:var(--text3)}
+.hint{font-size:11px;color:var(--text3);text-align:center;margin-top:4px}
+.sndbtn{width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .12s}
+.sndbtn:active{transform:scale(.88)}
+.micbtn{width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--surface3);color:var(--text2);transition:all .15s}
+.micbtn.listening{background:rgba(255,59,48,.15);color:#FF3B30;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+/* Reminder banner */
+.reminder{background:linear-gradient(135deg,#FF9500,#FF6B35);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;color:#fff;margin:0 0 10px}
+.reminder-txt{flex:1;font-size:13px;font-weight:600}
+.reminder-x{background:rgba(255,255,255,.2);border:none;border-radius:6px;color:#fff;padding:3px 8px;cursor:pointer;font-family:inherit;font-size:12px}
+
+/* Notes panel */
+.notes-ov{position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end}
+.notes-dim{position:absolute;inset:0;background:rgba(0,0,0,.4)}
+.notes-panel{position:relative;background:var(--surface);border-radius:20px 20px 0 0;padding:16px;padding-bottom:calc(20px + env(safe-area-inset-bottom));z-index:1;animation:slideUp .25s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.notes-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.notes-title{font-size:16px;font-weight:700;color:var(--text1)}
+.notes-area{width:100%;min-height:140px;max-height:240px;background:var(--surface2);border:none;border-radius:12px;padding:12px;font-size:14px;font-family:inherit;color:var(--text1);line-height:1.55;resize:none;outline:none}
+.notes-area::placeholder{color:var(--text3)}
+.notes-hint{font-size:11px;color:var(--text3);margin-top:6px;text-align:center}
+
+/* Sidebar */
+.ov{position:fixed;inset:0;z-index:50;display:flex}
+.sht{width:300px;background:var(--sidebar);height:100%;overflow-y:auto;animation:si .27s cubic-bezier(.4,0,.2,1)}
+.shhdr{padding:20px 16px 12px;display:flex;align-items:center;justify-content:space-between}
+.sht2{font-size:20px;font-weight:700;color:var(--text1);letter-spacing:-.4px}
+.xbtn{width:44px;height:44px;border-radius:50%;background:var(--surface3);border:none;cursor:pointer;font-size:15px;color:var(--text2);display:flex;align-items:center;justify-content:center}
+.course-tabs{display:flex;gap:6px;margin:0 16px 14px;background:var(--surface3);border-radius:12px;padding:3px}
+.ctab{flex:1;padding:7px;border-radius:9px;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--text2);background:none;transition:all .2s}
+.ctab.active{background:var(--surface);color:var(--text1);box-shadow:0 1px 4px var(--shadow)}
+.s-card{background:var(--surface);border-radius:14px;margin:0 16px 2px;overflow:hidden;box-shadow:0 1px 3px var(--shadow)}
+.li{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:inherit;min-height:44px;transition:background .1s;color:var(--text1)}
+.li:active,.li.act{background:var(--surface3)}
+.lbox{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lname{font-size:13px;line-height:1.3;color:var(--text1)}
+.li.act .lname{font-weight:600}
+.sdiv{height:.5px;background:var(--border2);margin:0 14px}
+.dim{flex:1;background:rgba(0,0,0,.45)}
+
+/* Error */
+.err-blk{background:rgba(255,59,48,.1);border:.5px solid rgba(255,59,48,.3);border-radius:12px;padding:10px 13px;font-size:12px;color:#FF3B30;line-height:1.5}
+.rbtn{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;margin-top:5px;display:block}
+
+/* Confirm strip */
+.confirm-strip{background:rgba(255,149,0,.15);border:.5px solid rgba(255,149,0,.3);border-radius:12px;padding:10px 13px;font-size:13px;color:var(--text1);display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 16px 8px}
+.cyes{padding:6px 14px;border-radius:8px;background:#FF3B30;color:#fff;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit}
+.cno{padding:6px 14px;border-radius:8px;background:var(--surface3);color:var(--text1);font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit}
+.reset-lnk{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline;padding:8px 16px 12px;display:block}
+
+/* API screen */
+.apiscreen{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:24px;text-align:center;gap:16px;min-height:100dvh}
+.apicard{background:var(--surface);border-radius:20px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 2px 16px var(--shadow)}
+.apititle{font-size:22px;font-weight:700;color:var(--text1);letter-spacing:-.4px;margin-bottom:6px}
+.apisub{font-size:14px;color:var(--text2);line-height:1.5;margin-bottom:20px}
+.api-lbl{display:block;font-size:12px;font-weight:600;color:var(--text2);text-align:left;margin-bottom:6px}
+.apiinput{width:100%;padding:13px 16px;border-radius:12px;border:1.5px solid var(--border);font-size:14px;font-family:inherit;color:var(--text1);background:var(--input);outline:none;margin-bottom:12px;transition:border-color .2s}
+.apiinput:focus{border-color:#007AFF}
+.apibtn{width:100%;padding:14px;border-radius:13px;background:linear-gradient(135deg,#007AFF,#0A84FF);color:#fff;font-size:16px;font-weight:700;border:none;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(0,122,255,.35);transition:opacity .15s}
+.apibtn:disabled{opacity:.55;cursor:not-allowed}
+.apihint{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.5}
+.apihint a{color:#007AFF;text-decoration:none}
+
+/* Print styles */
+@media print{
+  .hdr,.btm,.msgs-wrap .scroll-btn,.ov,.notes-ov,.rating-block{display:none!important}
+  body{background:#fff;color:#000}
+  .msgs{padding:0;height:auto;overflow:visible;padding-bottom:0}
+  .msgs-wrap{overflow:visible;height:auto}
+  #root{max-width:100%;min-height:auto}
+  .row{break-inside:avoid;margin-bottom:12px}
+  .bub.t{box-shadow:none;border:1px solid #ddd}
+  .code-block{break-inside:avoid}
+  .chk-block,.schema-block,.dash-preview,.phase-block{break-inside:avoid;border:1px solid #ddd;box-shadow:none}
+  @page{margin:2cm}
+}
+
+.skip-nav{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+button:focus-visible{outline:2px solid #007AFF;outline-offset:2px;border-radius:4px}
+@keyframes pu{0%,60%,100%{opacity:.3;transform:scale(.85)}30%{opacity:1;transform:scale(1.1)}}
+@keyframes si{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script nomodule>document.getElementById('root').innerHTML='<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center"><div><div style="font-size:32px;margin-bottom:12px">◈</div><div style="font-size:18px;font-weight:600;margin-bottom:8px">Обнови браузер</div><div style="font-size:14px;color:#636366">Safari 16+, Chrome 89+, Firefox 90+</div></div></div>';</script>
+<script type="module">
+import { h, Fragment, render } from 'preact';
+import { useState, useRef, useEffect, useCallback } from 'preact/hooks';
+import { html } from 'htm/preact';
+
+/* ── Service Worker ── */
+
+
+/* ── PWA Manifest ── */
+(()=>{
+  const m={name:"Claude Code — Курс",short_name:"CC Курс",display:"standalone",background_color:"#f2f2f7",theme_color:"#34C759",start_url:".",icons:[{src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='48' fill='%2334C759'/><text x='96' y='134' font-size='110' text-anchor='middle' fill='white'>◈</text></svg>",sizes:"192x192",type:"image/svg+xml"}]};
+  const link=Object.assign(document.createElement('link'),{rel:'manifest',href:URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}))});
+  document.head.appendChild(link);
+})();
+
+/* ── Lessons ── */
+const LESSONS_DASH=[
+  {n:1,name:"Концепция дашборда",phase:1},{n:2,name:"Бриф (CLAUDE.md)",phase:1},
+  {n:3,name:"Каркас страницы",phase:1},{n:4,name:"Данные и KPI-карточки",phase:1},
+  {n:5,name:"Графики",phase:1},{n:6,name:"Финальная доводка",phase:1},
+  {n:7,name:"Приёмка Фазы 1",phase:1},{n:8,name:"Подготовка к деплою",phase:1},
+  {n:9,name:"Первый деплой",phase:1},{n:10,name:"Боевой запуск + Метрика",phase:1},
+  {n:11,name:"Изменения без поломок",phase:1},{n:12,name:"Итог Фазы 1",phase:1},
+  {n:13,name:"Буфер",phase:1},{n:14,name:"Архитектура Фазы 2",phase:2},
+  {n:15,name:"Google Sheets API",phase:2},{n:16,name:"Живые данные",phase:2},
+  {n:17,name:"Живые графики",phase:2},{n:18,name:"Фильтры и состояние",phase:2},
+  {n:19,name:"Приёмка Фазы 2",phase:2},{n:20,name:"Итог Фазы 2",phase:2},
+  {n:21,name:"Буфер",phase:2},{n:22,name:"Переезд на сервер",phase:3},
+  {n:23,name:"База данных и формы",phase:3},{n:24,name:"Авторизация",phase:3},
+  {n:25,name:"Управление данными",phase:3},{n:26,name:"Выпуск",phase:3},
+];
+const LESSONS_TG=[
+  {n:1,name:"Концепция бота",phase:1},{n:2,name:"Бриф (CLAUDE.md)",phase:1},
+  {n:3,name:"Регистрация в BotFather",phase:1},{n:4,name:"Первые команды бота",phase:1},
+  {n:5,name:"Каркас Mini App",phase:1},{n:6,name:"Кнопка открывает Mini App",phase:1},
+  {n:7,name:"Дизайн Mini App",phase:1},{n:8,name:"Приёмка (локальная)",phase:1},
+  {n:9,name:"Деплой бота на Cloud Run",phase:1},{n:10,name:"Webhook вместо polling",phase:1},
+  {n:11,name:"Боевой запуск + Метрика",phase:1},{n:12,name:"Изменения без поломок",phase:1},
+  {n:13,name:"Буфер",phase:1},{n:14,name:"Архитектура Фазы 2",phase:2},
+  {n:15,name:"Настройка PostgreSQL",phase:2},{n:16,name:"Первые данные",phase:2},
+  {n:17,name:"Форма ввода в Mini App",phase:2},{n:18,name:"Список и фильтры",phase:2},
+  {n:19,name:"Приёмка Фазы 2",phase:2},{n:20,name:"Итог Фазы 2",phase:2},
+  {n:21,name:"Буфер",phase:2},{n:22,name:"Уведомления по триггеру",phase:3},
+  {n:23,name:"Уведомления по расписанию",phase:3},{n:24,name:"Роли пользователей",phase:3},
+  {n:25,name:"Панель администратора",phase:3},{n:26,name:"Выпуск",phase:3},
+];
+
+const P={
+  1:{name:"Статика",c:"#34C759",bg:"rgba(52,199,89,.12)",g:"linear-gradient(135deg,#34C759,#30D158)"},
+  2:{name:"Динамика",c:"#007AFF",bg:"rgba(0,122,255,.12)",g:"linear-gradient(135deg,#007AFF,#0A84FF)"},
+  3:{name:"Продакшн",c:"#FF6B35",bg:"rgba(255,107,53,.12)",g:"linear-gradient(135deg,#FF6B35,#FF453A)"},
+};
+
+const MODEL="claude-sonnet-4-6";
+const LS_KEY="tutor_apikey_v1";
+const MAX_HIST=20;
+
+/* ── System prompts ── */
+const FORMAT_RULES="\nФОРМАТИРОВАНИЕ — ОБЯЗАТЕЛЬНО:\n1. Команды терминала: блок ```bash ... ``` (три бэктика bash)\n2. Задачи Claude Code: блок ```prompt ... ``` (три бэктика prompt)\n3. Чеклисты: :::checklist Название\n- [ ] Пункт\n::::\n4. Структура занятия: :::phase СТАРТ|ТЕОРИЯ|ПРАКТИКА|ФИНАЛ\n5. Схема: :::schema Заголовок\nA -> B -> C\n::::\n6. Превью дашборда: :::dashboard\n{\"title\":\"...\",...}\n::::\n7. Заметки: :::note текст  :::tip текст  :::warning текст  :::stop текст\n8. Файл прогресса (конец): блок ```progress ... ``` с полями ФАЗА,ЗАНЯТИЕ,СДЕЛАНО,СЛЕД.ШАГ\nВ начале занятия — всегда :::phase. Конец занятия — всегда ```progress блок.";
+
+
+const SYSTEM_DASH=`Ты — наставник по Claude Code для руководителя без опыта программирования.
+Студент: топ-менеджер, строительный контроль нефтегаза (Газпром). Код не нужен — нужно управлять Claude Code как инструментом.
+Проект: оригинальный веб-дашборд (объекты КР, замечания). На занятии 1 — предложи концепцию.
+Три фазы: 1-статика (HTML+JS+JSON, Object Storage), 2-динамика (Google Sheets), 3-приложение (Cloud Run+PostgreSQL).
+Аналогии: Claude Code=подрядчик, CLAUDE.md=ТЗ, деплой=сдача объекта, коммит=акт.
+ЗАПРЕЩЕНО: объяснять синтаксис кода, учить программированию, "почитай документацию".
+Пиши кратко, короткими абзацами. Без воды.
+
+ВИЗУАЛЬНЫЕ ЭЛЕМЕНТЫ — ТЫ УМЕЕШЬ И ОБЯЗАН ИСПОЛЬЗОВАТЬ В КАЖДОМ ЗАНЯТИИ:
+Интерфейс рендерит специальные блоки как красивые визуальные компоненты:
+- :::dashboard {...} — живой превью дашборда с KPI и графиком
+- :::checklist Название / - [ ] Пункт ::: — интерактивный чеклист с галочками
+- :::schema Заголовок / A -> B -> C ::: — схема архитектуры
+- :::phase ТЕОРИЯ — шкала прогресса занятия  
+- :::note / :::tip / :::warning / :::stop — цветные блоки
+- BASH-блок (3 бэктика+bash) — команды терминала
+- PROMPT-блок (3 бэктика+prompt) — задачи Claude Code
+НИКОГДА не говори что не умеешь визуальные элементы. Используй их активно.
+${FORMAT_RULES}`;
+
+const SYSTEM_TG=`Ты — наставник по разработке Telegram-бота с Mini App через Claude Code.
+Студент: топ-менеджер, строительный контроль нефтегаза (Газпром). Код не нужен.
+Проект: Telegram-бот для рабочей практики (объекты КР, уведомления, трекер замечаний). Занятие 1 — предложи концепцию.
+Три фазы: 1-бот+статичная MiniApp (Cloud Run+Object Storage), 2-данные (PostgreSQL), 3-автоматизация (уведомления, роли, планировщик).
+Аналогии: Claude Code=подрядчик, CLAUDE.md=ТЗ, деплой=сдача объекта, коммит=акт. Бот=диспетчер, MiniApp=окно на объект.
+ЗАПРЕЩЕНО: объяснять синтаксис кода, учить программированию, "почитай документацию".
+Пиши кратко, короткими абзацами. Без воды.
+
+ВИЗУАЛЬНЫЕ ЭЛЕМЕНТЫ — ТЫ УМЕЕШЬ И ОБЯЗАН ИСПОЛЬЗОВАТЬ В КАЖДОМ ЗАНЯТИИ:
+Интерфейс рендерит специальные блоки как красивые визуальные компоненты:
+- :::dashboard {...} — живой превью дашборда с KPI и графиком
+- :::checklist Название / - [ ] Пункт ::: — интерактивный чеклист с галочками
+- :::schema Заголовок / A -> B -> C ::: — схема архитектуры
+- :::phase ТЕОРИЯ — шкала прогресса занятия  
+- :::note / :::tip / :::warning / :::stop — цветные блоки
+- BASH-блок (3 бэктика+bash) — команды терминала
+- PROMPT-блок (3 бэктика+prompt) — задачи Claude Code
+НИКОГДА не говори что не умеешь визуальные элементы. Используй их активно.
+${FORMAT_RULES}`;
+
+/* ── Glossary ── */
+const GLOSSARY={
+  'деплой':'Размещение приложения на сервере — как сдача объекта в эксплуатацию',
+  'API':'Интерфейс для общения между программами — как стандартный протокол обмена данными',
+  'git':'Система версий проекта — журнал всех изменений со штатной возможностью отката',
+  'коммит':'Фиксация изменений в git — акт выполненных работ с описанием',
+  'JSON':'Формат хранения данных в виде текста — как Excel-таблица, но для программ',
+  'webhook':'Автоматическое уведомление от Telegram при новом сообщении — звонок диспетчеру',
+  'localStorage':'Хранилище данных в браузере — записная книжка браузера',
+  'PostgreSQL':'База данных для хранения информации — электронный журнал с поиском',
+  'CLAUDE.md':'Файл-инструкция для Claude Code — техническое задание для подрядчика',
+  'Mini App':'Веб-страница внутри Telegram — интерфейс приложения прямо в мессенджере',
+  'Cloud Run':'Облачный сервис для запуска серверов — круглосуточный диспетчер в облаке',
+  'Object Storage':'Хранилище файлов в облаке — общая сетевая папка',
+  'polling':'Бот сам опрашивает сервер каждые 3 сек — диспетчер, который сам звонит',
+  'фаза':'Этап разработки с конкретным результатом — стадия строительного проекта',
+  'бакет':'Папка в Object Storage — контейнер для файлов проекта',
+};
+
+/* ── Storage helpers ── */
+function ls(k,d){try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d;}catch{return d;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function lsKey(course,suffix){return `tutor_${course}_${suffix}`;}
+
+/* ── useFocusTrap ── */
+function useFocusTrap(active,onEsc){
+  const ref=useRef(null);
+  useEffect(()=>{
+    if(!active||!ref.current)return;
+    const el=ref.current;
+    const nodes=el.querySelectorAll('button,[href],input,textarea,[tabindex]:not([tabindex="-1"])');
+    const first=nodes[0],last=nodes[nodes.length-1];
+    const prev=document.activeElement;
+    setTimeout(()=>first?.focus(),10);
+    const h=(e)=>{
+      if(e.key==='Escape'){onEsc();return;}
+      if(e.key!=='Tab')return;
+      if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last?.focus();}}
+      else{if(document.activeElement===last){e.preventDefault();first?.focus();}}
+    };
+    document.addEventListener('keydown',h);
+    return()=>{document.removeEventListener('keydown',h);prev?.focus();};
+  },[active]);
+  return ref;
+}
+
+/* ══ RICH RENDERER ══ */
+
+function CopyBtn({text}){
+  const [c,setC]=useState(false);
+  const copy=()=>{navigator.clipboard?.writeText(text).then(()=>{setC(true);setTimeout(()=>setC(false),2000);}).catch(()=>{});};
+  return html`<button class=${`copy-btn ${c?'copied':''}`} onClick=${copy}>${c?'✓ Скопировано':'Скопировать'}</button>`;
+}
+
+function ChecklistBlock({title,items,msgId,idx,course}){
+  const key=`chk_${course}_${msgId}_${idx}`;
+  const [checks,setChecks]=useState(()=>ls(key,{}));
+  const toggle=(i)=>{const n={...checks,[i]:!checks[i]};setChecks(n);lsSet(key,n);};
+  const done=Object.values(checks).filter(Boolean).length;
+  return html`
+    <div class="chk-block">
+      ${title&&html`<div class="chk-title">☑ ${title}</div>`}
+      ${items.map((item,i)=>html`
+        <div key=${i} class=${`chk-item ${checks[i]?'done':''}`} onClick=${()=>toggle(i)}>
+          <div class="chk-box">${checks[i]&&html`<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`}</div>
+          <span class="chk-txt">${item}</span>
+        </div>`)}
+      <div class="chk-prog"><div class="chk-fill" style="width:${items.length?Math.round(done/items.length*100):0}%"/></div>
+    </div>`;
+}
+
+const PHASES_LIST=['СТАРТ','ТЕОРИЯ','ПРАКТИКА','ФИНАЛ'];
+function PhaseBlock({current}){
+  const cur=PHASES_LIST.indexOf(current.toUpperCase().trim());
+  return html`
+    <div class="phase-block">
+      <div class="phase-title">Структура занятия</div>
+      <div class="phase-steps">
+        ${PHASES_LIST.map((p,i)=>html`
+          <${Fragment} key=${i}>
+            ${i>0&&html`<div class=${`phase-conn ${i<=cur?'done':''}`}/>`}
+            <div class="phase-step">
+              <div class=${`phase-dot ${i<cur?'done':i===cur?'active':'pending'}`}
+                style=${i===cur?{background:'linear-gradient(135deg,#007AFF,#0A84FF)'}:{}}>
+                ${i<cur?html`<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:i+1}
+              </div>
+              <div class=${`phase-lbl ${i===cur?'active':''}`}>${p}</div>
+            </div>
+          <//>
+        `)}
+      </div>
+    </div>`;
+}
+
+function SchemaBlock({title,content}){
+  const parts=content.split(/→|->/).map(s=>s.trim()).filter(Boolean);
+  const bgs=['rgba(52,199,89,.12)','rgba(0,122,255,.12)','rgba(255,107,53,.12)','rgba(255,149,0,.12)'];
+  const clrs=['#1a5c12','#003d80','#7a3000','#7a4a00'];
+  return html`
+    <div class="schema-block">
+      ${title&&html`<div class="schema-title">${title}</div>`}
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+        ${parts.map((p,i)=>html`
+          <${Fragment} key=${i}>
+            ${i>0&&html`<span style="color:var(--text3);font-size:18px">→</span>`}
+            <div style="border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;background:${bgs[i%bgs.length]};color:${clrs[i%clrs.length]}">${p}</div>
+          <//>
+        `)}
+      </div>
+    </div>`;
+}
+
+function DashboardBlock({raw}){
+  let data;try{data=JSON.parse(raw);}catch{return null;}
+  const {title,kpis=[],bars=[]}=data;
+  const maxBar=Math.max(...bars,1);
+  return html`
+    <div class="dash-preview">
+      <div class="dash-title">${title||'Превью дашборда'}</div>
+      ${kpis.length>0&&html`
+        <div class="kpi-row">
+          ${kpis.slice(0,4).map((k,i)=>html`
+            <div key=${i} class="kpi-card" style="background:${k.color}15;border:1px solid ${k.color}30">
+              <div class="kpi-label">${k.label}</div>
+              <div class="kpi-value" style="color:${k.color}">${k.value}</div>
+              ${k.trend&&html`<div class="kpi-trend" style="color:${k.trend.startsWith('+')||k.trend.startsWith('-')?k.trend.startsWith('+')?'#34C759':'#FF3B30':'var(--text3)'}">${k.trend}</div>`}
+            </div>`)}
+        </div>`}
+      ${bars.length>0&&html`
+        <div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:4px">Динамика</div>
+          <div class="mini-chart">
+            ${bars.map((b,i)=>html`<div key=${i} class="bar" style="height:${Math.round(b/maxBar*44)}px;background:linear-gradient(180deg,#007AFF,#0A84FF);opacity:${.4+i/bars.length*.6}"/>`)}
+          </div>
+        </div>`}
+    </div>`;
+}
+
+function ProgressBlock({content}){
+  const [c,setC]=useState(false);
+  const copy=()=>{navigator.clipboard?.writeText(content).then(()=>{setC(true);setTimeout(()=>setC(false),2000);});};
+  return html`
+    <div class="prog-block">
+      <div class="prog-hdr" style="background:linear-gradient(135deg,#34C759,#30D158)">
+        <span style="font-size:12px;font-weight:700;color:#fff">📋 ФАЙЛ ПРОГРЕССА</span>
+        <button onClick=${copy} style="background:rgba(255,255,255,.2);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;padding:3px 10px;cursor:pointer;font-family:inherit">${c?'✓ Скопировано':'Скопировать'}</button>
+      </div>
+      <div style="padding:12px 14px">
+        ${content.trim().split('\n').map((l,i)=>{
+          const col=l.indexOf(':');
+          if(col>0){const k=l.slice(0,col),v=l.slice(col+1).trim();return html`<div key=${i} class="prog-row"><span class="prog-key">${k}:</span><span>${v}</span></div>`;}
+          return html`<div key=${i} class="prog-row" style="font-weight:600">${l}</div>`;
+        })}
+      </div>
+    </div>`;
+}
+
+/* ── Glossary tooltip ── */
+function GlossaryText({text}){
+  const [active,setActive]=useState(null);
+  const words=Object.keys(GLOSSARY);
+  const parts=[];
+  let rest=text,last=0;
+  const termRe=new RegExp(`\\b(${words.map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')})\\b`,'gi');
+  let m;
+  while((m=termRe.exec(text))!==null){
+    if(m.index>last)parts.push(text.slice(last,m.index));
+    const term=m[0];
+    const def=GLOSSARY[term.toLowerCase()];
+    parts.push(html`<span key=${m.index} class="gloss-term" onClick=${(e)=>{e.stopPropagation();setActive(active===m.index?null:m.index);}}>
+      ${term}
+      ${active===m.index&&html`<span class="gloss-tip">${def}</span>`}
+    </span>`);
+    last=m.index+m[0].length;
+  }
+  if(last<text.length)parts.push(text.slice(last));
+  return h(Fragment,null,...parts);
+}
+
+/* ── Inline markdown ── */
+function renderInline(text,applyGloss=false){
+  const segs=[];let i=0,buf='';
+  while(i<text.length){
+    if(text[i]==='*'&&text[i+1]==='*'){const end=text.indexOf('**',i+2);if(end>-1){if(buf){segs.push(buf);buf='';}segs.push(h('strong',null,renderInline(text.slice(i+2,end))));i=end+2;continue;}}
+    if(text[i]==='*'&&text[i+1]!=='*'){const end=text.indexOf('*',i+1);if(end>-1){if(buf){segs.push(buf);buf='';}segs.push(h('em',null,text.slice(i+1,end)));i=end+1;continue;}}
+    if(text[i]==='`'&&text[i+1]!=='`'){const end=text.indexOf('`',i+1);if(end>-1){if(buf){segs.push(buf);buf='';}segs.push(h('code',{style:{background:'var(--surface3)',borderRadius:'4px',padding:'1px 5px',fontSize:'12px',fontFamily:"'SF Mono',Menlo,monospace"}},text.slice(i+1,end)));i=end+1;continue;}}
+    buf+=text[i++];
+  }
+  if(buf){segs.push(applyGloss?h(GlossaryText,{text:buf}):buf);}
+  return segs;
+}
+
+function renderParagraph(para){
+  if(!para.trim())return null;
+  if(/^#{1,3}\s/.test(para)){const lv=para.match(/^(#+)/)[1].length;return h(`h${Math.min(lv,3)}`,{style:{fontSize:lv===1?'15px':lv===2?'14px':'13px',fontWeight:700,margin:'8px 0 4px',color:'var(--text1)'}},renderInline(para.replace(/^#+\s/,'')));}
+  if(/^[-*]\s/.test(para)){return h('ul',null,para.split('\n').filter(l=>/^[-*]\s/.test(l)).map((l,i)=>h('li',{key:i},renderInline(l.replace(/^[-*]\s/,''),true))));}
+  if(/^\d+\.\s/.test(para)){return h('ol',null,para.split('\n').filter(l=>/^\d+\.\s/.test(l)).map((l,i)=>h('li',{key:i},renderInline(l.replace(/^\d+\.\s/,''),true))));}
+  return h('p',null,renderInline(para,true));
+}
+
+function renderTable(block){
+  const rows=block.split('\n').filter(l=>l.trim().startsWith('|'));
+  if(rows.length<2)return null;
+  const hdrs=rows[0].split('|').filter(c=>c.trim()).map(c=>c.trim());
+  const body=rows.slice(2).map(r=>r.split('|').filter(c=>c.trim()).map(c=>c.trim()));
+  return h('div',{style:{overflowX:'auto'}},h('table',{class:'md-table'},h('thead',null,h('tr',null,hdrs.map((c,i)=>h('th',{key:i},c)))),h('tbody',null,body.map((row,i)=>h('tr',{key:i},row.map((cell,j)=>h('td',{key:j},renderInline(cell))))))));
+}
+
+/* ── Main rich message renderer ── */
+function RichMessage({text,msgId,isUser,course,onFinalDetected}){
+  if(isUser){return html`<div class="bub u" style="width:fit-content">${text.split('\n').map((l,i,a)=>html`<span key=${i}>${l}${i<a.length-1?html`<br/>`:''}</span>`)}</div>`;}
+  useEffect(()=>{if(text.includes('progress')&&text.includes('ЗАНЯТИЕ'))onFinalDetected?.();},[]);
+  const segments=[];let last=0;let bi=0;
+  const re=/(```([\w]*)\n([\s\S]*?)```|:::([\w]+)[ \t]*([^\n]*)\n([\s\S]*?):::(?:\n|$)|:::([\w]+)[ \t]*([^\n]*)(?:\n|$))/g;
+  let m;
+  while((m=re.exec(text))!==null){
+    if(m.index>last)segments.push({type:'text',content:text.slice(last,m.index)});
+    if(m[1]?.startsWith('```'))segments.push({type:'code',lang:(m[2]||'').trim(),content:(m[3]||'').trim()});
+    else if(m[4])segments.push({type:m[4],title:(m[5]||'').trim(),content:(m[6]||'').trim()});
+    else if(m[7])segments.push({type:m[7],title:'',content:(m[8]||'').trim()});
+    last=m.index+m[0].length;
+  }
+  if(last<text.length)segments.push({type:'text',content:text.slice(last)});
+
+  const els=[];let tbuf='';
+  const flush=()=>{
+    if(!tbuf.trim())return;
+    const paras=tbuf.split(/\n{2,}/);
+    const nodes=paras.map((p,i)=>{
+      p=p.trim();if(!p)return null;
+      if(p.includes('|')&&p.split('\n').some(l=>l.trim().startsWith('|')))return h(Fragment,{key:i},renderTable(p));
+      return h(Fragment,{key:i},renderParagraph(p));
+    }).filter(Boolean);
+    if(nodes.length)els.push(h('div',{key:'t'+(bi++),class:'bub t'},nodes));
+    tbuf='';
+  };
+
+  for(const seg of segments){
+    if(seg.type==='text'){tbuf+=seg.content;continue;}
+    flush();
+    const k='b'+(bi++);
+    if(seg.type==='code'){
+      const isP=seg.lang==='prompt',isB=seg.lang==='bash'||seg.lang==='sh',isProg=seg.lang==='progress';
+      if(isProg)els.push(h(ProgressBlock,{key:k,content:seg.content}));
+      else els.push(h('div',{key:k,class:'code-block'},h('div',{class:'code-hdr'},h('span',{class:'code-lang'},isP?'Claude Code':isB?'Терминал':seg.lang||'Код'),h(CopyBtn,{text:seg.content})),h('div',{class:'code-body'},h('pre',null,seg.content))));
+    }else if(seg.type==='checklist'){
+      const items=seg.content.split('\n').filter(l=>/^-\s*\[[ x]\]/.test(l)).map(l=>l.replace(/^-\s*\[[ x]\]\s*/,''));
+      els.push(h(ChecklistBlock,{key:k,title:seg.title,items,msgId,idx:bi,course}));
+    }else if(seg.type==='phase'){
+      els.push(h(PhaseBlock,{key:k,current:seg.title||seg.content}));
+    }else if(seg.type==='schema'){
+      els.push(h(SchemaBlock,{key:k,title:seg.title,content:seg.content}));
+    }else if(seg.type==='dashboard'){
+      els.push(h(DashboardBlock,{key:k,raw:seg.content}));
+    }else if(['note','tip','warning','stop'].includes(seg.type)){
+      const icons={note:'💡',tip:'🎯',warning:'⚠️',stop:'🚫'};
+      els.push(h('div',{key:k,class:`callout ${seg.type}`},h('span',{class:'callout-icon'},icons[seg.type]),h('div',{class:'callout-text'},renderInline(seg.content||seg.title,true))));
+    }else{tbuf+=(seg.content||seg.title)+'\n';}
+  }
+  flush();
+  return h(Fragment,null,...els);
+}
+
+/* ── Lesson rating ── */
+const RATINGS=[{id:'good',label:'👍 Понятно',color:'#34C759'},{id:'repeat',label:'🔄 Повторить',color:'#FF9500'},{id:'hard',label:'👎 Сложно',color:'#FF3B30'}];
+function LessonRating({lessonKey,onRate}){
+  const [sel,setSel]=useState(()=>ls(`rating_${lessonKey}`,null));
+  const rate=(id)=>{setSel(id);lsSet(`rating_${lessonKey}`,id);onRate?.(id);};
+  return html`
+    <div class="rating-block">
+      <span class="rating-label">Занятие:</span>
+      ${RATINGS.map(r=>html`
+        <button key=${r.id} class=${`rating-btn ${sel===r.id?'sel':''}`}
+          style=${sel===r.id?{background:r.color}:{}}
+          onClick=${()=>rate(r.id)}>
+          ${r.label}
+        </button>`)}
+    </div>`;
+}
+
+/* ── API Key Screen ── */
+function APIKeyScreen({onSave}){
+  const [k,setK]=useState('');
+  const [e,setE]=useState('');
+  const [loading,setLoading]=useState(false);
+  const ref=useRef(null);
+  useEffect(()=>ref.current?.focus(),[]);
+  const test=async()=>{
+    const key=k.trim();
+    if(!key||!key.startsWith('sk-')){setE('Ключ должен начинаться с sk-');return;}
+    setLoading(true);setE('');
+    try{
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL,max_tokens:10,messages:[{role:'user',content:'hi'}]})});
+      if(r.ok){lsSet(LS_KEY,key);onSave(key);}
+      else{const d=await r.json().catch(()=>{});setE(d?.error?.message||'Неверный ключ.');}
+    }catch{setE('Ошибка соединения. Проверь интернет.');}
+    setLoading(false);
+  };
+  return html`
+    <div class="apiscreen">
+      <div class="apicard">
+        <div class="apititle">Claude Code</div>
+        <div style="font-size:32px;margin:8px 0">◈</div>
+        <div class="apisub">Для работы нужен API-ключ Anthropic. Хранится только в браузере.</div>
+        <label class="api-lbl" for="ak">API-ключ</label>
+        <input id="ak" ref=${ref} class="apiinput" type="password" placeholder="sk-ant-api03-..."
+          value=${k} autocomplete="off" onInput=${e=>setK(e.target.value)} onKeyDown=${e=>{if(e.key==='Enter')test();}}/>
+        ${e&&html`<div class="err-blk" role="alert" style="margin-bottom:10px">${e}</div>`}
+        <button class="apibtn" onClick=${test} disabled=${loading}>${loading?'Проверяем...':'Продолжить'}</button>
+        <div class="apihint">Ключ: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer">console.anthropic.com</a> · ~$0.003/занятие</div>
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════ */
+function App(){
+  const [apiKey,setApiKey]=useState(()=>ls(LS_KEY,''));
+  const [course,setCourse]=useState(()=>ls('tutor_course','dash'));
+  const LESSONS=course==='dash'?LESSONS_DASH:LESSONS_TG;
+  const SYSTEM=course==='dash'?SYSTEM_DASH:SYSTEM_TG;
+  const [cur,setCur]=useState(()=>{const n=ls(lsKey(course,'cur'),null);return n?LESSONS.find(l=>l.n===n)||null:null;});
+  const [msgs,setMsgs]=useState([]);
+  const [hist,setHist]=useState([]);
+  const [done,setDone]=useState(()=>new Set(ls(lsKey(course,'done'),[])));
+  const [inp,setInp]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [open,setOpen]=useState(false);
+  const [err,setErr]=useState('');
+  const [showScroll,setShowScroll]=useState(false);
+  const [confirmReset,setConfirmReset]=useState(false);
+  const [notesOpen,setNotesOpen]=useState(false);
+  const [noteText,setNoteText]=useState('');
+  const [showRating,setShowRating]=useState(false);
+  const [isListening,setIsListening]=useState(false);
+  const [reminder,setReminder]=useState(false);
+  const endRef=useRef(null);
+  const taRef=useRef(null);
+  const msgsRef=useRef(null);
+  const notesRef=useRef(null);
+  const sidebarRef=useFocusTrap(open,()=>setOpen(false));
+  const notesOverlayRef=useFocusTrap(notesOpen,()=>setNotesOpen(false));
+  const srRef=useRef(null);
+
+  /* Comeback reminder */
+  useEffect(()=>{
+    const last=ls('tutor_last_session',0);
+    const days=(Date.now()-last)/(1000*60*60*24);
+    if(last>0&&days>3)setReminder(true);
+    lsSet('tutor_last_session',Date.now());
+  },[]);
+
+  /* Init SpeechRecognition */
+  useEffect(()=>{
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR)return;
+    const sr=new SR();
+    sr.lang='ru-RU';sr.continuous=false;sr.interimResults=false;
+    sr.onresult=(e)=>{const t=e.results[0][0].transcript;setInp(prev=>prev+t);};
+    sr.onend=()=>setIsListening(false);
+    srRef.current=sr;
+  },[]);
+
+  useEffect(()=>{lsSet(lsKey(course,'done'),[...done]);},[done,course]);
+  useEffect(()=>{lsSet(lsKey(course,'cur'),cur?.n||null);},[cur,course]);
+  useEffect(()=>{lsSet('tutor_course',course);},[course]);
+  useEffect(()=>{if(!showScroll)endRef.current?.scrollIntoView({behavior:'smooth'});},[msgs,busy]);
+
+  const handleScroll=useCallback(()=>{
+    const el=msgsRef.current;
+    if(el)setShowScroll(el.scrollHeight-el.scrollTop-el.clientHeight>150);
+  },[]);
+
+  const saveLesson=(n,m,h)=>{lsSet(`tutor_msgs_${course}_${n}`,m.slice(-60));lsSet(`tutor_hist_${course}_${n}`,h.slice(-MAX_HIST));};
+
+  const pick=(l)=>{
+    setCur(l);
+    setMsgs(ls(`tutor_msgs_${course}_${l.n}`,[]));
+    setHist(ls(`tutor_hist_${course}_${l.n}`,[]));
+    setNoteText(ls(`tutor_note_${course}_${l.n}`,''));
+    setShowRating(false);setErr('');setConfirmReset(false);setOpen(false);
+  };
+
+  const switchCourse=(c)=>{
+    setCourse(c);
+    const LESS=c==='dash'?LESSONS_DASH:LESSONS_TG;
+    const n=ls(lsKey(c,'cur'),null);
+    const newCur=n?LESS.find(l=>l.n===n)||null:null;
+    setCur(newCur);
+    setDone(new Set(ls(lsKey(c,'done'),[])));
+    if(newCur){setMsgs(ls(`tutor_msgs_${c}_${newCur.n}`,[]));setHist(ls(`tutor_hist_${c}_${newCur.n}`,[]));setNoteText(ls(`tutor_note_${c}_${newCur.n}`,''));}
+    else{setMsgs([]);setHist([]);}
+    setShowRating(false);setErr('');setOpen(false);
+  };
+
+  const callAPI=async(h,lessonN)=>{
+    setBusy(true);setErr('');lsSet('tutor_last_session',Date.now());
+    const lesson=LESSONS.find(l=>l.n===lessonN);
+    const trimmed=h.slice(-MAX_HIST);
+    try{
+      const res=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:MODEL,max_tokens:1500,system:SYSTEM+(lesson?`\n\nТекущее занятие: ${lesson.n} — ${lesson.name}. Фаза: ${P[lesson.phase].name}.`:''),messages:trimmed})
+      });
+      if(!res.ok){const d=await res.json().catch(()=>({}));if(res.status===401){lsSet(LS_KEY,'');setApiKey('');return;}setErr(d?.error?.message||`Ошибка ${res.status}`);setBusy(false);return;}
+      const data=await res.json();
+      const text=data.content?.[0]?.text||'Пустой ответ.';
+      const newH=[...trimmed,{role:'assistant',content:text}];
+      setHist(newH);
+      setMsgs(prev=>{const next=[...prev,{who:'t',text,id:uid()}];saveLesson(lessonN,next,newH);return next;});
+      setDone(d=>new Set([...d,lessonN]));
+    }catch{setErr('Нет соединения. Проверь интернет.');}
+    setBusy(false);
+  };
+
+  const startLesson=()=>{
+    if(!cur||busy)return;
+    const text=`Занятие ${cur.n}. Начинаем.`;
+    const h=[{role:'user',content:text}];
+    const nm=[{who:'u',text,id:uid()}];
+    setHist(h);setMsgs(nm);setShowRating(false);
+    saveLesson(cur.n,nm,h);callAPI(h,cur.n);
+  };
+
+  const send=()=>{
+    if(!inp.trim()||busy||!cur)return;
+    const text=inp.trim();setInp('');
+    if(taRef.current)taRef.current.style.height='44px';
+    const newH=[...hist,{role:'user',content:text}];
+    setHist(newH);
+    setMsgs(prev=>{const next=[...prev,{who:'u',text,id:uid()}];saveLesson(cur.n,next,newH);return next;});
+    callAPI(newH,cur.n);
+  };
+
+  const toggleVoice=()=>{
+    if(!srRef.current)return;
+    if(isListening){srRef.current.stop();}
+    else{try{srRef.current.start();setIsListening(true);}catch{}}
+  };
+
+  const saveNote=()=>{if(cur)lsSet(`tutor_note_${course}_${cur.n}`,noteText);};
+
+  const exportPDF=()=>{window.print();};
+
+  const doReset=()=>{
+    LESSONS.forEach(l=>{localStorage.removeItem(`tutor_msgs_${course}_${l.n}`);localStorage.removeItem(`tutor_hist_${course}_${l.n}`);localStorage.removeItem(`tutor_note_${course}_${l.n}`);});
+    [lsKey(course,'done'),lsKey(course,'cur')].forEach(k=>localStorage.removeItem(k));
+    setDone(new Set());setCur(null);setMsgs([]);setHist([]);setNoteText('');setErr('');setConfirmReset(false);setOpen(false);
+  };
+
+  if(!apiKey)return html`<${APIKeyScreen} onSave=${setApiKey}/>`;
+
+  const pct=Math.round(done.size/LESSONS.length*100);
+  const pc=cur?P[cur.phase].c:'#34C759';
+  const pg=cur?P[cur.phase].g:'linear-gradient(135deg,#34C759,#30D158)';
+  const hasNotes=cur&&!!noteText.trim();
+  const hasSR=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+
+  return html`
+    <${Fragment}>
+      <a class="skip-nav" href="#messages">К содержимому</a>
+
+      <!-- Header -->
+      <header class="hdr">
+        <button class="hbtn" onClick=${()=>setOpen(true)} aria-label="Открыть программу" aria-expanded=${open}>
+          <svg width="16" height="13" viewBox="0 0 16 13" fill="none" aria-hidden="true">
+            <rect width="16" height="2" rx="1" fill="currentColor"/>
+            <rect y="5.5" width="11" height="2" rx="1" fill="currentColor"/>
+            <rect y="11" width="7" height="2" rx="1" fill="currentColor"/>
+          </svg>
+        </button>
+        <div class="htxt">
+          <div class="ht">${cur?`${cur.n}. ${cur.name}`:course==='dash'?'Курс: Дашборд':'Курс: Telegram-бот'}</div>
+          ${cur&&html`<div class="hs" style="color:${pc}">Фаза ${cur.phase} — ${P[cur.phase].name}</div>`}
+        </div>
+        <div style="display:flex;gap:5px;align-items:center">
+          ${cur&&html`
+            <button class="hbtn" onClick=${()=>{setNoteText(ls(`tutor_note_${course}_${cur.n}`,''));setNotesOpen(true);}} aria-label="Заметки" title="Заметки к занятию" style=${hasNotes?{color:'#FF9500'}:{}}>
+              📝${hasNotes?html`<span style="position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#FF9500"></span>`:''}
+            </button>
+            <button class="hbtn" onClick=${exportPDF} aria-label="Экспорт PDF" title="Сохранить как PDF">🖨</button>`}
+          <div class="pill" style="background:${pc}1a;color:${pc}">${pct}%</div>
+        </div>
+      </header>
+
+      <div class="pbar" role="progressbar" aria-valuenow=${pct} aria-valuemin="0" aria-valuemax="100">
+        <div class="pfill" style="width:${pct}%;background:${pg}"/>
+      </div>
+
+      <!-- Messages -->
+      <div class="msgs-wrap">
+        <div id="messages" class="msgs" ref=${msgsRef} onScroll=${handleScroll}
+          aria-live="polite" aria-label="История занятия" role="log">
+
+          ${reminder&&html`
+            <div class="reminder">
+              <span style="font-size:20px">⏰</span>
+              <span class="reminder-txt">Ты не занимался больше 3 дней. Продолжим?</span>
+              <button class="reminder-x" onClick=${()=>setReminder(false)}>✕</button>
+            </div>`}
+
+          ${msgs.length===0?html`
+            <div class="es">
+              <div class="eico" style="background:${pg};box-shadow:0 10px 30px ${pc}40">◈</div>
+              <div class="et">${cur?`Занятие ${cur.n}`:'Добро пожаловать'}</div>
+              <div class="es2">${cur?`${cur.name}\nНажмите «Начать занятие»`:course==='dash'?'Курс: Дашборд — от статики до приложения\nОткройте меню ☰ и выберите занятие':'Курс: Telegram-бот с Mini App\nОткройте меню ☰ и выберите занятие'}</div>
+            </div>`:msgs.map(m=>html`
+            <div key=${m.id} class=${`row ${m.who==='u'?'u':''}`}>
+              <div class="ava" style="background:${m.who==='t'?pg:'linear-gradient(135deg,#007AFF,#0A84FF)'}" aria-hidden="true">
+                ${m.who==='t'?'ТЬ':'ВЫ'}
+              </div>
+              <div class="bub-wrap" style=${m.who==='u'?{alignItems:'flex-end'}:{}}>
+                <${RichMessage} text=${m.text} msgId=${m.id} isUser=${m.who==='u'} course=${course}
+                  onFinalDetected=${()=>setTimeout(()=>setShowRating(true),500)}/>
+              </div>
+            </div>`)}
+
+          ${busy&&html`
+            <div class="row">
+              <div class="ava" style="background:${pg}" aria-hidden="true">ТЬ</div>
+              <div class="bub-wrap"><div class="bub t" style="padding:13px 15px;width:fit-content">
+                <div class="dots">${[0,1,2].map(i=>html`<div key=${i} class="dot" style="animation-delay:${i*.2}s"/>`)}</div>
+              </div></div>
+            </div>`}
+
+          ${err&&html`<div class="err-blk" role="alert">${err}<button class="rbtn" onClick=${()=>{setErr('');if(hist.length)callAPI(hist,cur?.n);}}>повторить</button></div>`}
+
+          ${showRating&&cur&&html`<${LessonRating} lessonKey=${`${course}_${cur.n}`}/>`}
+
+          <div ref=${endRef}/>
+        </div>
+
+        <button class=${`scroll-btn ${showScroll?'':'hidden'}`} onClick=${()=>{endRef.current?.scrollIntoView({behavior:'smooth'});setShowScroll(false);}} aria-label="Прокрутить вниз">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M7 12L2 7M7 12l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="btm">
+        ${cur&&msgs.length===0?html`
+          <button class="sbtn" style="background:${pg};box-shadow:0 5px 18px ${pc}40" onClick=${startLesson}>
+            Начать занятие ${cur.n}
+          </button>`:html`
+          <div class="irow">
+            ${hasSR&&html`
+              <button class=${`micbtn ${isListening?'listening':''}`} onClick=${toggleVoice} aria-label=${isListening?'Остановить запись':'Голосовой ввод'} title="Голосовой ввод">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="4" y="1" width="6" height="9" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M2 7c0 2.76 2.24 5 5 5s5-2.24 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="7" y1="12" x2="7" y2="13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              </button>`}
+            <label for="msg-inp" class="skip-nav">Сообщение</label>
+            <textarea id="msg-inp" ref=${taRef} class="ta"
+              placeholder=${cur?'Ответить тьютору...':'Выберите занятие...'}
+              value=${inp} disabled=${!cur||busy}
+              aria-label="Сообщение тьютору"
+              onInput=${e=>{setInp(e.target.value);const t=taRef.current;if(t){t.style.height='auto';t.style.height=Math.min(t.scrollHeight,96)+'px';}}}
+              onKeyDown=${e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}}
+              rows="1"/>
+            <button class="sndbtn"
+              style="background:${inp.trim()&&cur&&!busy?pg:'var(--surface3)'};box-shadow:${inp.trim()&&cur&&!busy?`0 3px 12px ${pc}44`:'none'}"
+              onClick=${send} disabled=${!inp.trim()||!cur||busy} aria-label="Отправить">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12V2M7 2L2 7M7 2L12 7" stroke=${inp.trim()&&cur?'#fff':'var(--text3)'} stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          ${cur&&html`<div class="hint">Enter — отправить · Shift+Enter — перенос</div>`}`}
+      </div>
+
+      <!-- Sidebar -->
+      ${open&&html`
+        <div class="ov">
+          <div ref=${sidebarRef} role="dialog" aria-modal="true" aria-label="Программа курса" class="sht">
+            <div class="shhdr">
+              <span class="sht2">Программа</span>
+              <button class="xbtn" onClick=${()=>setOpen(false)} aria-label="Закрыть">✕</button>
+            </div>
+
+            <!-- Course switcher -->
+            <div class="course-tabs">
+              <button class=${`ctab ${course==='dash'?'active':''}`} onClick=${()=>switchCourse('dash')}>📊 Дашборд</button>
+              <button class=${`ctab ${course==='tg'?'active':''}`} onClick=${()=>switchCourse('tg')}>🤖 Telegram-бот</button>
+            </div>
+
+            <!-- Progress stats -->
+            <div style="margin:0 16px 14px;background:var(--surface);border-radius:14px;padding:13px 15px;box-shadow:0 1px 3px var(--shadow)">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <span style="font-size:13px;font-weight:500;color:var(--text1)">Прогресс</span>
+                <span style="font-size:13px;font-weight:700;color:#34C759">${done.size}/${LESSONS.length}</span>
+              </div>
+              <div style="height:6px;background:var(--surface3);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#34C759,#30D158);border-radius:3px"/>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:8px">
+                ${[1,2,3].map(ph=>{const phL=LESSONS.filter(l=>l.phase===ph);const phD=phL.filter(l=>done.has(l.n)).length;return html`<div key=${ph} style="text-align:center"><div style="font-size:13px;font-weight:700;color:${P[ph].c}">${phD}/${phL.length}</div><div style="font-size:10px;color:var(--text3);margin-top:1px">Фаза ${ph}</div></div>`;})}</div>
+            </div>
+
+            <!-- Lesson lists -->
+            ${[1,2,3].map(ph=>{
+              const phL=LESSONS.filter(l=>l.phase===ph);
+              return html`
+                <div key=${ph} style="margin-bottom:6px">
+                  <div style="padding:5px 16px;display:flex;align-items:center;gap:8px">
+                    <span style="padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;background:${P[ph].bg};color:${P[ph].c}">Фаза ${ph}</span>
+                    <span style="font-size:12px;font-weight:600;color:var(--text1)">${P[ph].name}</span>
+                  </div>
+                  <div class="s-card">
+                    ${phL.map((l,idx)=>{
+                      const isDone=done.has(l.n),isAct=cur?.n===l.n;
+                      const rating=ls(`rating_${course}_${l.n}`,null);
+                      const ratingDot=rating==='good'?'#34C759':rating==='repeat'?'#FF9500':rating==='hard'?'#FF3B30':null;
+                      return html`<div key=${l.n}>
+                        ${idx>0&&html`<div class="sdiv"/>`}
+                        <button class=${`li ${isAct?'act':''}`} onClick=${()=>pick(l)} aria-current=${isAct?'page':undefined}>
+                          <div class="lbox" style="background:${isDone?P[ph].bg:isAct?P[ph].bg:'var(--surface3)'}">
+                            ${isDone?html`<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4.5L4 7.5L10 1" stroke=${P[ph].c} stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:html`<span style="font-size:10px;font-weight:700;color:${isAct?P[ph].c:'var(--text3)'}">${l.n}</span>`}
+                          </div>
+                          <span class="lname" style="color:${isAct?P[ph].c:'var(--text1)'}">${l.name}</span>
+                          <div style="display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0">
+                            ${ratingDot&&html`<div style="width:6px;height:6px;border-radius:50%;background:${ratingDot}"/>`}
+                            ${isAct&&html`<div style="width:5px;height:5px;border-radius:50%;background:${P[ph].c}"/>`}
+                          </div>
+                        </button>
+                      </div>`;
+                    })}
+                  </div>
+                </div>`;
+            })}
+
+            <!-- Reset -->
+            <div style="padding:8px 16px 12px">
+              ${confirmReset?html`
+                <div class="confirm-strip">
+                  <span>Сбросить прогресс курса?</span>
+                  <div style="display:flex;gap:6px;flex-shrink:0">
+                    <button class="cno" onClick=${()=>setConfirmReset(false)}>Отмена</button>
+                    <button class="cyes" onClick=${doReset}>Сбросить</button>
+                  </div>
+                </div>`:html`<button class="reset-lnk" onClick=${()=>setConfirmReset(true)}>сбросить прогресс</button>`}
+            </div>
+            <div style="height:20px"/>
+          </div>
+          <div class="dim" onClick=${()=>setOpen(false)}/>
+        </div>`}
+
+      <!-- Notes panel -->
+      ${notesOpen&&cur&&html`
+        <div class="notes-ov">
+          <div class="notes-dim" onClick=${()=>{saveNote();setNotesOpen(false);}}/>
+          <div ref=${notesOverlayRef} class="notes-panel">
+            <div class="notes-hdr">
+              <span class="notes-title">📝 Заметки — занятие ${cur.n}</span>
+              <button class="xbtn" onClick=${()=>{saveNote();setNotesOpen(false);}} aria-label="Закрыть заметки">✕</button>
+            </div>
+            <textarea ref=${notesRef} class="notes-area"
+              placeholder="Записывай сюда ключевые команды, решения, выводы..."
+              value=${noteText}
+              onInput=${e=>{setNoteText(e.target.value);}}
+              onBlur=${saveNote}
+              aria-label="Заметки к занятию"/>
+            <div class="notes-hint">Сохраняются автоматически · Видны только тебе</div>
+          </div>
+        </div>`}
+    <//>`;
+}
+
+render(html`<${App}/>`, document.getElementById('root'));
+</script>
+</body>
+</html>
